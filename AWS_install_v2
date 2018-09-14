@@ -1,5 +1,4 @@
-#install Cuda
-USE_CUDNN=0
+
 
 # install libs
 apt-get update
@@ -88,62 +87,6 @@ cmake -DOPENCV_EXTRA_MODULES_PATH=../OpenCV_contrib/modules -DWITH_QT=OFF -DWITH
 make -j $(($(nproc) + 1))
 make install
 ldconfig
-
-
-# install Caffe
-
-CUDNN_TAR_FILE="cudnn-8.0-linux-x64-v6.0.tgz"
-
-if [ "$	USE_CUDNN" != "0" ]; then
-  if [ ! -f "/tmp/${CUDNN_TAR_FILE}" ] ; then
-      curl -o /tmp/${CUDNN_TAR_FILE} http://developer.download.nvidia.com/compute/redist/cudnn/v6.0/${CUDNN_TAR_FILE}
-  fi
-fi
-
-# Add Nvidia's cuda repository
-wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_8.0.61-1_amd64.deb
-dpkg -i cuda-repo-ubuntu1604_8.0.61-1_amd64.deb
-
-# Note that we do upgrade and not dist-upgrade so that we don't install
-# new kernels; this script will install the nvidia driver in the *currently
-# running* kernel.
-apt-get upgrade -y
-apt-get install -y opencl-headers build-essential protobuf-compiler \
-    libprotoc-dev libboost-all-dev libleveldb-dev hdf5-tools libhdf5-serial-dev \
-    libopencv-core-dev  libopencv-highgui-dev libsnappy-dev \
-    libatlas-base-dev cmake libstdc++6-4.8-dbg libgoogle-glog0v5 libgoogle-glog-dev \
-    libgflags-dev liblmdb-dev git python-pip gfortran libopencv-dev
-apt-get clean
-
-# Nvidia's driver depends on the drm module, but that's not included in the default
-# 'virtual' ubuntu that's on the cloud (as it usually has no graphics).  It's 
-# available in the linux-image-extra-virtual package (and linux-image-generic supposedly),
-# but just installing those directly will install the drm module for the NEWEST available
-# kernel, not the one we're currently running.  Hence, we need to specify the version
-# manually.  This command will probably need to be re-run every time you upgrade the
-# kernel and reboot.
-#apt-get install -y linux-headers-virtual linux-source linux-image-extra-virtual
-apt-get install -y linux-image-extra-`uname -r` linux-headers-`uname -r` linux-image-`uname -r`
-
-apt-get install -y cuda-8.0
-apt-get clean
-
-# Optionally, download your own cudnn; requires registration.  
-if [ "$USE_CUDNN" != "0" ]; then
-  tar -xvf /tmp/${CUDNN_TAR_FILE} -C /tmp
-  cp -P /tmp/cuda/lib64/* /usr/local/cuda/lib64
-  cp /tmp/cuda/include/* /usr/local/cuda/include
-fi
-# Need to put cuda on the linker path.  This may not be the best way, but it works.
-sh -c "echo '/usr/local/cuda/lib64' > /etc/ld.so.conf.d/cuda_hack.conf"
-ldconfig /usr/local/cuda/lib64
-
-
-# Get caffe, and install python requirements
-git clone https://github.com/BVLC/caffe.git
-cd caffe
-cd python
-for req in $(cat requirements.txt); do pip install $req; done
 
 
 
