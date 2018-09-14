@@ -26,6 +26,9 @@ apt-get install -y python3-dev
 apt-get install -y python3-numpy python3-scipy
 
 
+#install opencv
+apt-get install -y python-opencv
+
 # install Caffe
 
 CUDNN_TAR_FILE="cudnn-8.0-linux-x64-v6.0.tgz"
